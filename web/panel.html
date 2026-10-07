@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel Docente FingerPrint</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap">
+      <a class="brand" href="/panel">
+        <span class="logo">◉</span>
+        <span>FingerPrint Lab<small>Panel del docente · en vivo</small></span>
+      </a>
+      <nav class="tabs">
+        <a class="tab active" href="/panel">📊 Panel</a>
+        <a class="tab" href="/" target="_blank">🔎 Abrir escáner</a>
+      </nav>
+      <button class="icon-btn" id="themeToggle" title="Cambiar tema claro/oscuro">◐</button>
+    </div>
+  </header>
+
+  <main class="wrap view active" style="padding-top:24px">
+    <div class="panel-top">
+      <div class="card join">
+        <div class="qr" id="qr"><span class="muted" style="font-size:.8rem;color:#555">QR</span></div>
+        <div>
+          <div class="eyebrow">Únete desde tu celular o portátil</div>
+          <div class="url" id="joinUrl">cargando…</div>
+          <p class="muted" style="margin:.5em 0 0">Conéctate a la misma red Wi-Fi del aula, escanea el código o escribe la dirección
+            y pulsa <b>«Escanear mi navegador»</b>.</p>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="card stat"><b class="grad" id="sDevices">0</b><span>dispositivos escaneados</span></div>
+        <div class="card stat"><b class="grad" id="sUnique">0 %</b><span>con huella única</span></div>
+        <div class="card stat"><b class="grad" id="sVisits">0</b><span>escaneos totales</span></div>
+        <div class="card stat"><b class="grad" id="sNoCookie">0</b><span>reconocidos sin cookie 🚨</span></div>
+      </div>
+    </div>
+
+    <div class="panel-main">
+      <section class="card">
+        <div class="section-head">
+          <h3 style="margin:0"><span class="live-dot"></span>&nbsp; Dispositivos del aula</h3>
+          <span class="muted" style="font-size:.8rem" id="updated"></span>
+        </div>
+        <div class="vis-list" id="visList"><div class="empty">Esperando el primer escaneo…<br><span style="font-size:2.4rem">📡</span></div></div>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <h3 style="margin:0">¿Qué atributo identifica más en esta clase?</h3>
+        </div>
+        <p class="muted" style="font-size:.84rem;margin-top:0">
+          Entropía de Shannon <code>H = −Σ p·log₂ p</code> de cada atributo entre los dispositivos del aula.
+          Máximo posible ahora: <b id="maxH">0</b> bits (todos distintos).
+          <span class="pill ok">estable</span> <span class="pill warn">volátil</span>
+        </p>
+        <div id="entropyList"><div class="empty">Sin datos todavía.</div></div>
+      </section>
+    </div>
+
+    <div class="card" style="margin-top:18px;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+      <div style="flex:1;min-width:240px">
+        <h3 style="margin:0 0 4px">Guion sugerido para la clase</h3>
+        <p class="muted" style="margin:0;font-size:.9rem">
+          ① Todos escanean · ② Mirar el % de huellas únicas · ③ Abrir en incógnito y re-escanear (sube el contador 🚨) ·
+          ④ Analizar qué atributo tiene más entropía · ⑤ Discutir defensas (pestaña «Aprende»).
+        </p>
+      </div>
+      <button class="btn danger small" id="resetBtn">🗑 Reiniciar datos de la clase</button>
+    </div>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/catalog.js"></script>
+  <script src="js/panel.js"></script>
+</body>
+</html>

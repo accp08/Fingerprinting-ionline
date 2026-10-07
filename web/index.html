@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FingerPrint Lab</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔎</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap">
+      <a class="brand" href="/">
+        <span class="logo">◉</span>
+        <span>FingerPrint Lab<small>Laboratorio de huella digital</small></span>
+      </a>
+      <nav class="tabs" role="tablist">
+        <button class="tab active" data-view="scan">🔎 Escáner</button>
+        <button class="tab" data-view="metadata">📄 Metadatos web</button>
+        <button class="tab" data-view="learn">📘 Aprende</button>
+        <button class="tab" data-view="lab">🧪 Experimentos</button>
+      </nav>
+      <button class="icon-btn" id="themeToggle" title="Cambiar tema claro/oscuro">◐</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- ================= ESCÁNER ================= -->
+    <section class="view active" id="view-scan">
+      <div id="intro">
+        <div class="hero">
+          <div>
+            <div class="eyebrow">Ciberseguridad · Privacidad web</div>
+            <h1>¿Qué tan <span class="grad">único</span> es tu navegador?</h1>
+            <p class="lead">
+              Sin cookies, sin iniciar sesión y sin pedirte permiso, un sitio web puede reunir decenas de
+              detalles de tu equipo y combinarlos en una <b>huella digital</b> que te identifica.
+              Vamos a ver en vivo qué ve un rastreador cuando entras a una página.
+            </p>
+            <div class="actions">
+              <button class="btn" id="startBtn">▶ Escanear mi navegador</button>
+              <button class="btn ghost" data-goto="learn">¿Qué es el fingerprinting?</button>
+            </div>
+            <p class="muted" style="font-size:.82rem;margin-top:14px">
+              🔒 Los datos solo se guardan en el computador del docente durante la clase, con fines educativos.
+            </p>
+          </div>
+          <div class="scanner-visual">
+            <svg viewBox="0 0 200 200" id="fpArt">
+              <defs>
+                <linearGradient id="fpGrad" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0" stop-color="var(--accent)"/>
+                  <stop offset="1" stop-color="var(--accent-2)"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="beam"></div>
+          </div>
+        </div>
+        <div class="fact-row">
+          <div class="card fact"><b class="grad">33 bits</b><span class="muted">bastan para distinguir a cada persona del planeta (2³³ ≈ 8.600 millones).</span></div>
+          <div class="card fact"><b class="grad">≈ 30</b><span class="muted">técnicas distintas usaremos en este escaneo, todas con JavaScript estándar.</span></div>
+          <div class="card fact"><b class="grad">0 cookies</b><span class="muted">necesita un rastreador para reconocerte en tu próxima visita.</span></div>
+        </div>
+      </div>
+
+      <div id="scanning" hidden>
+        <div class="scan-stage">
+          <div class="card scan-id">
+            <div class="eyebrow">Construyendo tu huella</div>
+            <div class="identicon" id="liveIdenticon"></div>
+            <div class="mono muted" id="liveHash">—</div>
+            <div class="progress"><i id="progressBar"></i></div>
+            <div class="muted" id="progressText">0 / 0</div>
+          </div>
+          <div class="terminal" id="terminal" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <div id="results" hidden>
+        <div class="card summary">
+          <div class="identicon" id="resIdenticon"></div>
+          <div>
+            <div class="eyebrow">Tu huella digital</div>
+            <h2 id="resTitle">—</h2>
+            <div class="hash" id="resHash"></div>
+            <div class="kpis">
+              <div class="kpi"><b id="kBits">—</b><span>bits de identificación (estimado)</span></div>
+              <div class="kpi"><b id="kOneIn">—</b><span>personas para encontrar a alguien igual</span></div>
+              <div class="kpi"><b id="kClass">—</b><span>dispositivos escaneados en el aula</span></div>
+              <div class="kpi"><b id="kAttrs">—</b><span>atributos recolectados</span></div>
+            </div>
+          </div>
+        </div>
+        <div id="banner"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn small" id="rescanBtn">↻ Escanear de nuevo</button>
+          <button class="btn ghost small" data-goto="lab">🧪 Siguiente: intenta engañar al rastreador</button>
+        </div>
+        <div class="filters" id="filters"></div>
+        <div class="grid-attrs" id="attrGrid"></div>
+        <p class="muted" style="font-size:.8rem;margin-top:18px">
+          <b>Barra verde</b>: información que aporta tu valor dentro del aula (−log₂ de la proporción de compañeros que lo comparten).
+          <b>Barra morada</b>: referencia aproximada de estudios a gran escala (Panopticlick, AmIUnique).
+          Haz clic en cualquier tarjeta para ver la explicación.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============== AUDITORÍA DE METADATOS ============== -->
+    <section class="view" id="view-metadata">
+      <div class="eyebrow">OSINT · documentos publicados</div>
+      <h2>¿Qué cuentan los metadatos de una web?</h2>
+      <p class="muted metadata-lead">
+        Busca documentos y recursos publicados en un sitio autorizado. Además de autores y fechas,
+        archivos de datos o respaldos pueden revelar información personal, financiera u operativa.
+        El análisis lee recursos públicos; no inicia sesión ni ejecuta su contenido.
+      </p>
+
+      <div class="metadata-layout">
+        <form class="card metadata-form" id="metadataForm">
+          <label for="metadataUrl"><b>Dirección del sitio</b></label>
+          <input id="metadataUrl" name="url" type="text" inputmode="url" autocomplete="url"
+            placeholder="https://sitio.ejemplo.edu" required maxlength="2048">
+          <label class="consent-row">
+            <input id="metadataAuthorized" type="checkbox" required>
+            <span>Confirmo que tengo autorización para revisar recursos públicos de este dominio, incluidos enlaces y rutas educativas comunes.</span>
+          </label>
+          <button class="btn" id="metadataStart" type="submit">▶ Revisar documentos</button>
+          <p id="metadataStatus" class="muted metadata-status" aria-live="polite">
+            Se revisan solo recursos del mismo dominio, sin iniciar sesión ni ejecutar código. Los metadatos encontrados se muestran con sus valores y criticidad.
+          </p>
+          <div class="metadata-limits">
+            <b>Límites de esta práctica</b>
+            <span>Hasta 50 páginas y 500 archivos; incluye PDF, Office, imágenes, JSON, CSV, configuración y ZIP. Máximo 5 MB por archivo, 16 rutas comunes y 100 rutas indexadas; 3 minutos por revisión.</span>
+          </div>
+        </form>
+
+        <aside class="card metadata-lesson">
+          <h3>¿Por qué importa?</h3>
+          <p>Un archivo puede mostrar información que no aparece en la página: quién lo editó, qué programa usó o cuándo trabajó en él.</p>
+          <ul>
+            <li><b>Identidad:</b> nombres de autores o editores pueden ayudar a preparar mensajes de suplantación.</li>
+            <li><b>Organización:</b> empresa, plantilla y nombres internos pueden revelar estructura o proyectos.</li>
+            <li><b>Huella técnica:</b> el software y su versión pueden orientar una búsqueda de riesgos conocidos.</li>
+            <li><b>Actividad:</b> fechas y revisiones pueden exponer horarios o etapas de un trabajo.</li>
+          </ul>
+          <p class="metadata-caveat">Una coincidencia es una señal, no prueba de una vulnerabilidad ni de que el dato siga vigente. El clasificador usa nombres de campos y patrones, puede dar falsos positivos; verifica el contexto sin copiar datos privados al informe.</p>
+        </aside>
+      </div>
+
+      <section class="card metadata-upload">
+        <h3>Subir un archivo para analizar</h3>
+        <p class="muted">Acepta cualquier formato hasta 20 MB. Además de PDF, Office/OpenDocument, imágenes y audio, resume campos sensibles en JSON, CSV, XML, configuración y ZIP. Otros formatos muestran tipo, tamaño y huella SHA-256.</p>
+        <form id="metadataUploadForm" class="metadata-upload-form">
+          <label for="metadataFile"><b>Selecciona un archivo</b></label>
+          <input id="metadataFile" name="file" type="file" required>
+          <label class="consent-row">
+            <input id="metadataUploadAuthorized" name="authorized" type="checkbox" value="yes" required>
+            <span>Confirmo que tengo permiso para enviar este archivo al servidor del laboratorio.</span>
+          </label>
+          <button class="btn" id="metadataUploadStart" type="submit">📄 Analizar archivo</button>
+          <p id="metadataUploadStatus" class="muted metadata-status" aria-live="polite">
+            Se procesa en memoria en el equipo que ejecuta el laboratorio; no se almacena ni se ejecuta.
+          </p>
+        </form>
+      </section>
+
+      <div id="metadataSummary" class="metadata-summary" hidden></div>
+      <div id="metadataReportActions" class="metadata-report-actions" hidden>
+        <button id="metadataExport" class="btn ghost small" type="button">⬇ Descargar informe CSV redactado</button>
+        <span class="muted">El informe exporta categorías y conteos, no valores personales.</span>
+      </div>
+      <div id="metadataWarnings" class="metadata-warnings" hidden></div>
+      <div id="metadataResults" class="metadata-results" aria-live="polite"></div>
+
+      <article class="card metadata-cleanup">
+        <h3>¿Cómo reducir la exposición?</h3>
+        <p>Antes de publicar, revisa el documento con el inspector de metadatos de tu editor, elimina propiedades personales que no sean necesarias y exporta una copia limpia. Vuelve a inspeccionar la copia: guardar o imprimir no siempre elimina todos los datos.</p>
+      </article>
+    </section>
+
+    <!-- ================= APRENDE ================= -->
+    <section class="view" id="view-learn">
+      <div class="eyebrow">Teoría</div>
+      <h2>Fingerprinting del navegador en 6 ideas</h2>
+      <p class="muted" style="max-width:70ch">Usa estas tarjetas como guía de la clase. Cada concepto se puede comprobar con el escáner.</p>
+
+      <div class="lesson-grid" style="margin-top:20px">
+        <article class="card lesson">
+          <div class="num">1</div>
+          <h3>¿Qué es una huella digital del navegador?</h3>
+          <p>Es un identificador que se obtiene <b>combinando muchas características</b> del navegador y del equipo
+            (pantalla, fuentes, GPU, idioma, zona horaria…). Ninguna es única por sí sola, pero <b>juntas</b> casi siempre lo son.</p>
+          <p>Igual que en una huella dactilar: no importa un solo surco, importa el patrón completo.</p>
+        </article>
+
+        <article class="card lesson">
+          <div class="num">2</div>
+          <h3>Cookie vs. huella</h3>
+          <div class="versus">
+            <div>
+              <h4>🍪 Cookie</h4>
+              <ul>
+                <li>Se <b>guarda</b> en tu equipo</li>
+                <li>Puedes verla y borrarla</li>
+                <li>El modo incógnito la elimina</li>
+                <li>Requiere consentimiento (GDPR / Ley 1581)</li>
+              </ul>
+            </div>
+            <div>
+              <h4>🫆 Huella</h4>
+              <ul>
+                <li>Se <b>calcula</b>, no se guarda nada</li>
+                <li>Invisible para el usuario</li>
+                <li>Sobrevive al modo incógnito</li>
+                <li>Difícil de detectar y de bloquear</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <article class="card lesson">
+          <div class="num">3</div>
+          <h3>Pasivo vs. activo</h3>
+          <p><b>Pasivo:</b> el servidor analiza lo que el navegador envía de todos modos: IP, cabeceras HTTP
+            (User-Agent, Accept-Language), orden de cabeceras, huella TLS (JA3/JA4).</p>
+          <p><b>Activo:</b> el sitio ejecuta JavaScript para preguntar o <i>medir</i>: dibujar en un canvas oculto,
+            generar audio silencioso, medir fuentes, consultar la GPU con WebGL.</p>
+        </article>
+
+        <article class="card lesson">
+          <div class="num">4</div>
+          <h3>Entropía: midiendo la información</h3>
+          <p>La información que aporta un dato se mide en <b>bits</b>. Si una característica la comparte una proporción <i>p</i> de la población:</p>
+          <div class="formula">bits = −log₂(p)</div>
+          <p>Ej.: si 1 de cada 8 personas usa tu zona horaria, ese dato aporta <b>log₂(8) = 3 bits</b>.
+            Cada bit divide a la población a la mitad. Con ≈ 33 bits se identifica a cualquier persona del mundo.</p>
+        </article>
+
+        <article class="card lesson span-2">
+          <div class="num">5</div>
+          <h3>Calculadora interactiva: ¿cuántos bits hacen falta?</h3>
+          <p>Marca los atributos que recolecta un rastreador. Los valores son referencias aproximadas de estudios reales.
+            <i>(Sumar bits supone que los atributos son independientes; en la realidad están correlacionados, así que es una cota superior.)</i></p>
+          <div class="calc" style="margin-top:14px">
+            <div class="calc-list" id="calcList"></div>
+            <div class="card calc-out">
+              <div class="muted">Información acumulada</div>
+              <div class="bits grad" id="calcBits">0 bits</div>
+              <div class="people" id="calcPeople">—</div>
+              <div class="world-bar"><i id="calcBar"></i><span class="mark" style="left:82.5%" title="33 bits"></span></div>
+              <div class="muted" style="font-size:.8rem;display:flex;justify-content:space-between"><span>0</span><span>33 bits = población mundial</span><span>40</span></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="card lesson span-2">
+          <div class="num">6</div>
+          <h3>Defensas, usos legítimos y aspectos legales</h3>
+          <div class="table-scroll">
+            <table class="defense-table">
+              <thead><tr><th>Estrategia</th><th>Ejemplo</th><th>Cómo funciona</th><th>Limitación</th></tr></thead>
+              <tbody>
+                <tr><td><b>Uniformidad</b></td><td>Tor Browser, Firefox <code>resistFingerprinting</code></td><td>Todos los usuarios reportan los mismos valores (UTC, tamaño de ventana redondeado…).</td><td>Algunas webs fallan; solo funciona si muchos lo usan.</td></tr>
+                <tr><td><b>Aleatorización</b></td><td>Brave, Safari (modo privado)</td><td>Añaden ruido a canvas, audio y WebGL: la huella cambia en cada sesión o sitio.</td><td>Un rastreador puede detectar el ruido y usar otros atributos.</td></tr>
+                <tr><td><b>Bloqueo</b></td><td>uBlock Origin, Privacy Badger, Firefox ETP</td><td>Bloquean scripts conocidos de rastreo antes de que se ejecuten.</td><td>No sirve contra scripts propios del sitio.</td></tr>
+                <tr><td><b>Reducción de API</b></td><td>User-Agent Reduction, Privacy Budget</td><td>Los navegadores exponen menos detalle por defecto.</td><td>Proceso lento; el fingerprinting pasivo sigue.</td></tr>
+                <tr><td><b>Paradoja</b></td><td>Extensiones exóticas, DNT</td><td>Cuanto más "rara" es tu configuración, <b>más única</b> es tu huella.</td><td>Mejor parecerse a la mayoría.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="versus" style="margin-top:16px">
+            <div>
+              <h4>✅ Usos legítimos</h4>
+              <ul>
+                <li>Detección de fraude bancario y robo de cuentas</li>
+                <li>Detección de bots y ataques de credenciales</li>
+                <li>Autenticación adaptativa ("¿es tu dispositivo habitual?")</li>
+              </ul>
+            </div>
+            <div>
+              <h4>⚖️ Marco legal</h4>
+              <ul>
+                <li><b>GDPR</b> (UE) y directiva ePrivacy: la huella es dato personal y requiere consentimiento.</li>
+                <li><b>Ley 1581 de 2012</b> (Colombia): tratamiento de datos personales con autorización del titular.</li>
+                <li>Google permite fingerprinting en anuncios desde 2025: debate abierto.</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ================= EXPERIMENTOS ================= -->
+    <section class="view" id="view-lab">
+      <div class="eyebrow">Práctica guiada</div>
+      <h2>Experimentos: ¿puedes escapar del rastreador?</h2>
+      <p class="muted" style="max-width:70ch">Haz primero un escaneo normal. Luego realiza cada experimento,
+        <b>predice</b> qué pasará y escanea de nuevo. Abre la respuesta solo después de probar.</p>
+      <div class="exp-grid" style="margin-top:20px" id="expGrid"></div>
+    </section>
+  </main>
+
+  <footer class="footer wrap">FingerPrint Lab · herramienta educativa de ciberseguridad · Inspirado en Panopticlick (EFF) y AmIUnique</footer>
+
+  <dialog id="detail">
+    <div class="modal-head">
+      <span class="ico" id="dIco"></span>
+      <h3 id="dTitle"></h3>
+      <button class="icon-btn" id="dClose" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body" id="dBody"></div>
+  </dialog>
+
+  <script src="js/common.js"></script>
+  <script src="js/catalog.js"></script>
+  <script src="js/collectors.js"></script>
+  <script src="js/scanner.js"></script>
+  <script src="js/metadata.js"></script>
+</body>
+</html>
